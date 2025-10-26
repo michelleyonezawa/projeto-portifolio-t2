@@ -2,9 +2,9 @@
   "name": "projeto-portifolio-t2",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js"
   },
   "repository": {
     "type": "git",
@@ -16,5 +16,11 @@
   "bugs": {
     "url": "https://github.com/michelleyonezawa/projeto-portifolio-t2/issues"
   },
-  "homepage": "https://github.com/michelleyonezawa/projeto-portifolio-t2#readme"
+  "homepage": "https://github.com/michelleyonezawa/projeto-portifolio-t2#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "swagger-ui-express": "^5.0.1"
+  }
 }

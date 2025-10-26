@@ -1,0 +1,230 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Plantões - Projeto Portfólio",
+    "version": "1.0.0",
+    "description": "API para registro de plantões, metas e autenticação de usuários."
+  },
+  "servers": [
+    { "url": "/api" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "username": { "type": "string" }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string" }
+        }
+      },
+      "Shift": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "userId": { "type": "integer" },
+          "date": { "type": "string", "format": "date" },
+          "value": { "type": "number" },
+          "location": { "type": "string" },
+          "startTime": { "type": "string" },
+          "endTime": { "type": "string" }
+        }
+      },
+      "Goal": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "userId": { "type": "integer" },
+          "value": { "type": "number" },
+          "month": { "type": "integer" },
+          "year": { "type": "integer" }
+        }
+      },
+      "GoalProgress": {
+        "type": "object",
+        "properties": {
+          "goal": { "type": "number" },
+          "received": { "type": "number" },
+          "remaining": { "type": "number" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" }
+        }
+      }
+    }
+  },
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+    "/users/register": {
+      "post": {
+        "summary": "Registrar novo usuário",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Usuário criado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
+          "400": { "description": "Erro de validação", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/users/login": {
+      "post": {
+        "summary": "Login do usuário",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login bem-sucedido", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginResponse" } } } },
+          "401": { "description": "Credenciais inválidas", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/shifts": {
+      "post": {
+        "summary": "Registrar plantão",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": { "type": "string", "format": "date" },
+                  "value": { "type": "number" },
+                  "location": { "type": "string" },
+                  "startTime": { "type": "string" },
+                  "endTime": { "type": "string" }
+                },
+                "required": ["date", "value", "location", "startTime", "endTime"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Plantão registrado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Shift" } } } },
+          "400": { "description": "Erro de validação", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Não autorizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "get": {
+        "summary": "Listar plantões do usuário",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de plantões", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Shift" } } } } },
+          "401": { "description": "Não autorizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/shifts/sum": {
+      "get": {
+        "summary": "Somatória do valor recebido por período",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "period", "in": "query", "required": true, "schema": { "type": "string", "enum": ["monthly", "quarterly", "semiannual", "annual"] } },
+          { "name": "year", "in": "query", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Somatória do período", "content": { "application/json": { "schema": { "type": "object", "properties": { "sum": { "type": "number" } } } } } },
+          "401": { "description": "Não autorizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/shifts/goal-progress": {
+      "get": {
+        "summary": "Progresso da meta mensal",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "month", "in": "query", "required": true, "schema": { "type": "integer" } },
+          { "name": "year", "in": "query", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Progresso da meta", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GoalProgress" } } } },
+          "404": { "description": "Meta não encontrada", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Não autorizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/goals": {
+      "post": {
+        "summary": "Definir meta mensal",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "number" },
+                  "month": { "type": "integer" },
+                  "year": { "type": "integer" }
+                },
+                "required": ["value", "month", "year"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Meta definida", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Goal" } } } },
+          "400": { "description": "Erro de validação", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Não autorizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "get": {
+        "summary": "Obter meta mensal",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "month", "in": "query", "required": true, "schema": { "type": "integer" } },
+          { "name": "year", "in": "query", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Meta encontrada", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Goal" } } } },
+          "404": { "description": "Meta não encontrada", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Não autorizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    }
+  }
+}
