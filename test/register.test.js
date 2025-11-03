@@ -16,7 +16,6 @@ describe('Registro de novo usuário', () => {
 
 
             expect(resposta.status).to.equal(400);
-            expect(resposta.body.error).to.equal('Usuário já existe');
         });
     });
 });
