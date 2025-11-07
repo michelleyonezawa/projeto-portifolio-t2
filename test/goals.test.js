@@ -26,14 +26,12 @@ describe('Definir meta', () => {
         });
 
         it('Deve retornar 401 quando definir a meta com dados inválidos', async () => {
-            const bodyGoals = { ...postGoals }
-            bodyGoals.value = "zero";
 
             const resposta = await request(process.env.BASE_URL)
                 .post('/api/goals')
                 .set('Content-Type', 'application/json')
                 .set('Authorization', `Bearer ${token}`)
-                .send(bodyGoals);
+                .query({ value: "0", month: "0", year: "0"});
 
             expect(resposta.status).to.equal(401);
         });
@@ -54,10 +52,7 @@ describe('Obter meta', () => {
                 .get('/api/goals')
                 .set('Content-Type', 'application/json')
                 .set('Authorization', `Bearer ${token}`)
-                .send({
-                    month:'11',
-                    year:'2025'
-                });
+                .query({ month: 11, year: 2025 })
 
             expect(resposta.status).to.equal(200);
         });
@@ -68,10 +63,7 @@ describe('Obter meta', () => {
                 .get('/api/goals')
                 .set('Content-Type', 'application/json')
                 .set('Authorization', `Bearer ${token}`)
-                .send({
-                    month:'01',
-                    year:'2020'
-                });
+                .query({ month: "0", year: "0" })
 
             expect(resposta.status).to.equal(404);
         });
