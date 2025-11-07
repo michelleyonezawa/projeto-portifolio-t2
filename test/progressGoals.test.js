@@ -15,11 +15,8 @@ describe('Progresso da meta mensal', () => {
 
             const resposta = await request(process.env.BASE_URL)
                 .get('/api/shifts/goal-progress')
-                .set('Authorization', `Bearer ${token}`)
-                .send({
-                    month: 11,
-                    year: 2025,
-                })
+                .query({ month: 11, year: 2025 })
+                .set('Authorization', `Bearer ${token}`);
 
             expect(resposta.status).to.equal(200);
         });
